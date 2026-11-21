@@ -1549,6 +1549,338 @@ function Settings() {
     </>
   );
 }
+
+
+function AuthPage({ onLogin }) {
+  const [mode, setMode] = useState("login");
+
+  const [form, setForm] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    phone: "",
+    address: "",
+    city: "",
+    state: "",
+    pincode: "",
+  });
+
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
+  function updateField(e) {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+
+    setMessage("");
+    setError("");
+  }
+
+  // Customer registration
+  async function register(e) {
+    e.preventDefault();
+
+    try {
+      setLoading(true);
+      setError("");
+      setMessage("");
+
+      await api.post("/users/register", {
+        fullName: form.fullName.trim(),
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+        phone: form.phone.trim(),
+        address: form.address.trim(),
+        city: form.city.trim(),
+        state: form.state.trim(),
+        pincode: form.pincode.trim(),
+      });
+
+      setMessage(
+        "Registration successful! Please log in using your new account."
+      );
+
+      setMode("login");
+
+      setForm({
+        fullName: "",
+        email: form.email.trim().toLowerCase(),
+        password: "",
+        phone: "",
+        address: "",
+        city: "",
+        state: "",
+        pincode: "",
+      });
+
+    } catch (err) {
+      setError(err.message || "Registration failed.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Customer/Admin/Agent login
+  async function login(e) {
+    e.preventDefault();
+
+    try {
+      setLoading(true);
+      setError("");
+      setMessage("");
+
+      const response = await api.post("/users/login", {
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      });
+
+      // Send authenticated user details to App
+      onLogin(response.data);
+
+    } catch (err) {
+      setError(err.message || "Login failed. Check your email and password.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="auth-page">
+      <div className="auth-card">
+
+        <div className="auth-brand">
+          <div className="auth-brand-icon">
+            <Wifi size={23} />
+          </div>
+
+          <div>
+            <strong>TelecomPro</strong>
+            <span>Service Provisioning & Activation</span>
+          </div>
+        </div>
+
+        <div className="auth-heading">
+          <div className="eyebrow">
+            J21 · TELECOM OPERATIONS
+          </div>
+
+          <h1>
+            {mode === "login"
+              ? "Welcome back"
+              : "Create your account"}
+          </h1>
+
+          <p>
+            {mode === "login"
+              ? "Sign in to your TelecomPro account."
+              : "Register as a customer to get started."}
+          </p>
+        </div>
+
+        <div className="auth-tabs">
+          <button
+            type="button"
+            className={mode === "login" ? "active" : ""}
+            onClick={() => {
+              setMode("login");
+              setError("");
+              setMessage("");
+            }}
+          >
+            Login
+          </button>
+
+          <button
+            type="button"
+            className={mode === "register" ? "active" : ""}
+            onClick={() => {
+              setMode("register");
+              setError("");
+              setMessage("");
+            }}
+          >
+            Register
+          </button>
+        </div>
+
+        {message && (
+          <div className="auth-message success">
+            {message}
+          </div>
+        )}
+
+        {error && (
+          <div className="auth-message error">
+            {error}
+          </div>
+        )}
+
+        {mode === "register" ? (
+
+          <form className="auth-form" onSubmit={register}>
+
+            <div className="auth-form-grid">
+
+              <Field label="Full name">
+                <input
+                  name="fullName"
+                  value={form.fullName}
+                  onChange={updateField}
+                  required
+                  maxLength={100}
+                  placeholder="Enter your full name"
+                />
+              </Field>
+
+              <Field label="Email address">
+                <input
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={updateField}
+                  required
+                  maxLength={120}
+                  placeholder="you@example.com"
+                />
+              </Field>
+
+              <Field label="Password">
+                <input
+                  name="password"
+                  type="password"
+                  value={form.password}
+                  onChange={updateField}
+                  required
+                  minLength={8}
+                  maxLength={72}
+                  placeholder="Minimum 8 characters"
+                />
+              </Field>
+
+              <Field label="Phone number">
+                <input
+                  name="phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={updateField}
+                  required
+                  maxLength={15}
+                  placeholder="Enter phone number"
+                />
+              </Field>
+
+              <div className="auth-full">
+                <Field label="Address">
+                  <input
+                    name="address"
+                    value={form.address}
+                    onChange={updateField}
+                    required
+                    maxLength={255}
+                    placeholder="Enter your address"
+                  />
+                </Field>
+              </div>
+
+              <Field label="City">
+                <input
+                  name="city"
+                  value={form.city}
+                  onChange={updateField}
+                  required
+                  placeholder="Enter city"
+                />
+              </Field>
+
+              <Field label="State">
+                <input
+                  name="state"
+                  value={form.state}
+                  onChange={updateField}
+                  required
+                  placeholder="Enter state"
+                />
+              </Field>
+
+              <Field label="PIN code">
+                <input
+                  name="pincode"
+                  value={form.pincode}
+                  onChange={updateField}
+                  required
+                  maxLength={10}
+                  placeholder="Enter PIN code"
+                />
+              </Field>
+
+            </div>
+
+            <button
+              type="submit"
+              className="primary-btn auth-submit"
+              disabled={loading}
+            >
+              {loading
+                ? "Creating account..."
+                : "Create customer account"}
+            </button>
+
+            <p className="auth-footnote">
+              Public registration creates a CUSTOMER account only.
+            </p>
+
+          </form>
+
+        ) : (
+
+          <form className="auth-form" onSubmit={login}>
+
+            <Field label="Email address">
+              <input
+                name="email"
+                type="email"
+                value={form.email}
+                onChange={updateField}
+                required
+                placeholder="Enter your email"
+              />
+            </Field>
+
+            <Field label="Password">
+              <input
+                name="password"
+                type="password"
+                value={form.password}
+                onChange={updateField}
+                required
+                placeholder="Enter your password"
+              />
+            </Field>
+
+            <button
+              type="submit"
+              className="primary-btn auth-submit"
+              disabled={loading}
+            >
+              {loading ? "Signing in..." : "Sign in"}
+            </button>
+
+            <p className="auth-footnote">
+              Sign in using your registered email and password.
+            </p>
+
+          </form>
+
+        )}
+
+      </div>
+    </div>
+  );
+}
+
 function Shell() {
   const [d, update] = useData();
   const [dark, D] = useState(
@@ -1597,10 +1929,41 @@ function Shell() {
     </div>
   );
 }
+
 export default function App() {
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      return JSON.parse(
+        sessionStorage.getItem("j21CurrentUser")
+      );
+    } catch {
+      return null;
+    }
+  });
+
+  function handleLogin(user) {
+    sessionStorage.setItem(
+      "j21CurrentUser",
+      JSON.stringify(user)
+    );
+
+    setCurrentUser(user);
+  }
+
+  function handleLogout() {
+    sessionStorage.removeItem("j21CurrentUser");
+    setCurrentUser(null);
+  }
+
   return (
     <BrowserRouter>
-      <Shell />
+      {currentUser ? (
+        <Shell />
+      ) : (
+        <AuthPage onLogin={handleLogin} />
+      )}
     </BrowserRouter>
   );
 }
+
