@@ -24,7 +24,7 @@ A web-based application designed to automate telecommunications service provisio
 - docs/ – Project documentation and test reports
 
 ## Project Status
-Under Development
+Completed
 
 ## Academic Project
 ABES Engineering College | MCA | Academic Year 2026–2027
